@@ -119,15 +119,16 @@ def criar_ferramentas(fundamentos_csv: str, precos_csv: str):
         """
         from datetime import date, timedelta
 
-        from inventidor.dados.cvm import baixar_ipe
+        from inventidor.dados.cvm import baixar_ipe_desde
         from inventidor.dados.http import RedeIndisponivel
         from inventidor.especialistas.noticias import alertas, ler_mapa, texto_alertas
 
         try:
-            docs = baixar_ipe(date.today().year)
+            desde = date.today() - timedelta(days=dias)
+            docs = baixar_ipe_desde(desde)
         except RedeIndisponivel as e:
             return f"Sem acesso à CVM: {e}. Não há alertas verificados; não estime."
-        return texto_alertas(alertas(docs, ler_mapa(mapa_csv), date.today() - timedelta(days=dias)))
+        return texto_alertas(alertas(docs, ler_mapa(mapa_csv), desde))
 
     @beta_tool
     def juro_real_atual() -> str:

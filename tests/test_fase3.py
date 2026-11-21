@@ -114,3 +114,32 @@ def test_backtest_nos_exemplos_e_consistente():
         for a, b in zip(trades, trades[1:]):
             assert b.entrada_data > a.saida_data
         assert 0 <= r.perda_maxima_pct < 100
+
+
+def test_ipe_zip_em_latin1_e_janela_que_cruza_o_ano(monkeypatch):
+    import io, zipfile
+    from inventidor.dados import cvm
+
+    pedidos = []
+
+    def falso_baixar(url, **k):
+        pedidos.append(url)
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as z:
+            z.writestr("ipe_cia_aberta_2026.csv", IPE.encode("latin-1"))
+        return buf.getvalue()
+
+    monkeypatch.setattr(cvm, "baixar", falso_baixar)
+    docs = cvm.baixar_ipe_desde(date(2025, 12, 20), date(2026, 1, 10))
+    assert [u[-8:] for u in pedidos] == ["2025.zip", "2026.zip"]
+    assert docs[0].assunto == "Aprovação de dividendos intercalares"
+
+
+def test_cotacoes_salvas_sao_lidas_pelo_tecnico(tmp_path):
+    from inventidor.dados.cotacoes import salvar_csv, simbolo_yahoo
+
+    assert simbolo_yahoo("petr4") == "PETR4.SA" and simbolo_yahoo("^BVSP") == "^BVSP"
+    series = {"PETR4": [cd(0, 30.5, 31, 30), cd(1, 31, 31.2, 30.4)]}
+    caminho = tmp_path / "sub" / "precos.csv"
+    salvar_csv(series, caminho)
+    assert ler_precos(caminho) == series
