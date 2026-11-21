@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import sys
 from decimal import Decimal
+from pathlib import Path
 
 from inventidor.carteira import Carteira
 from inventidor.impostos.apuracao import apurar_periodo
@@ -46,6 +47,14 @@ def _plano(args) -> None:
         ler_fundamentos(args.fundamentos), ler_precos(args.precos),
     )
     print(texto_plano(plano, "Plano do mês 0 (valor inicial)"))
+    if args.registrar:
+        from datetime import date as _d
+
+        from inventidor import diario
+        from inventidor.especialistas.orquestrador import itens_do_diario
+
+        novas = [i for i in itens_do_diario(plano, _d.today()) if diario.registrar_sugestao(i, Path(args.diario))]
+        print(f"\n{len(novas)} sugestão(ões) enviada(s) para a fila. Veja: inventidor fila")
     print()
     print(texto_dicas())
 
@@ -116,6 +125,25 @@ def main(argv: list[str] | None = None) -> int:
     pl.add_argument("--meses", type=int, default=12)
     pl.add_argument("--fundamentos", default="exemplos/fundamentos.csv")
     pl.add_argument("--precos", default="exemplos/precos.csv")
+    pl.add_argument("--registrar", action="store_true", help="coloca as sugestões na fila de decisões")
+    pl.add_argument("--diario", default="dados/diario.jsonl")
+    fi = sub.add_parser("fila", help="sugestões esperando sua decisão")
+    fi.add_argument("--todas", action="store_true", help="inclui recusadas e executadas")
+    for nome, ajuda in (("aprovar", "aprova uma sugestão"), ("recusar", "recusa uma sugestão"),
+                        ("boleta", "mostra a boleta de uma sugestão aprovada"),
+                        ("executada", "registra que você executou a ordem na corretora")):
+        sp = sub.add_parser(nome, help=ajuda)
+        sp.add_argument("id")
+        if nome == "recusar":
+            sp.add_argument("--motivo", default="")
+        if nome == "executada":
+            sp.add_argument("--preco", required=True)
+            sp.add_argument("--qtd", type=int)
+            sp.add_argument("--custos", default="0")
+            sp.add_argument("--operacoes", default="dados/operacoes.csv")
+    for sp in sub.choices.values():
+        if sp.prog.split()[-1] in ("fila", "aprovar", "recusar", "boleta", "executada"):
+            sp.add_argument("--diario", default="dados/diario.jsonl")
     bt = sub.add_parser("backtest", help="testa a estratégia do Analista Técnico no histórico")
     bt.add_argument("--precos", default="exemplos/precos.csv")
     bt.add_argument("ticker", nargs="*", help="sem tickers, testa todos do arquivo")
@@ -133,16 +161,51 @@ def main(argv: list[str] | None = None) -> int:
 
     from inventidor.dados.http import RedeIndisponivel
 
+    from inventidor.diario import ErroDiario
+
     try:
         return _executar(args)
+    except ErroDiario as e:
+        print(f"Não foi possível: {e}")
+        return 1
     except RedeIndisponivel as e:
         print(f"Sem acesso à fonte de dados: {e}")
         print("Nada foi estimado no lugar. Tente de novo com internet ou use os CSVs manuais.")
         return 1
 
 
+def _decisao(args) -> None:
+    from inventidor import diario
+    from inventidor.especialistas.mesa import boleta
+
+    cam = Path(args.diario)
+    if args.comando == "fila":
+        estados = tuple(diario.Estado) if args.todas else (diario.Estado.SUGERIDA, diario.Estado.APROVADA)
+        print(diario.texto_fila(diario.carregar(cam), estados))
+    elif args.comando == "aprovar":
+        item = diario.aprovar(args.id, cam)
+        print(f"{item.id} APROVADA por você. Próximo: inventidor boleta {item.id}")
+    elif args.comando == "recusar":
+        item = diario.recusar(args.id, args.motivo, cam)
+        print(f"{item.id} RECUSADA.")
+    elif args.comando == "boleta":
+        itens = diario.carregar(cam)
+        if args.id not in itens:
+            raise diario.ErroDiario(f"Sugestão {args.id!r} não existe. Veja `inventidor fila`.")
+        print(boleta(itens[args.id]))
+    else:
+        item = diario.executar(
+            args.id, Decimal(args.preco.replace(",", ".")), args.qtd,
+            Decimal(args.custos.replace(",", ".")), operacoes_csv=Path(args.operacoes), caminho=cam,
+        )
+        print(f"{item.id} registrada como EXECUTADA e adicionada a {args.operacoes}.")
+        print("O Contador já considera essa compra na carteira e no preço médio.")
+
+
 def _executar(args) -> int:
-    if args.comando == "plano":
+    if args.comando in ("fila", "aprovar", "recusar", "boleta", "executada"):
+        _decisao(args)
+    elif args.comando == "plano":
         _plano(args)
     elif args.comando == "backtest":
         _backtest(args)

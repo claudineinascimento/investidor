@@ -9,8 +9,10 @@ Nenhuma ordem é enviada.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import date
 from decimal import ROUND_DOWN, Decimal
 
+from inventidor.diario import Item
 from inventidor.especialistas.consultor import Classe, MesPlano, Politica, distribuir_valor
 from inventidor.especialistas.dicas import DICAS
 from inventidor.especialistas.fundamentalista import Avaliacao, Fundamentos, ranking
@@ -192,6 +194,19 @@ def texto_plano_aportes(plano: list[MesPlano]) -> str:
             f"{m.mes:>4}  " + "  ".join(f"{m.aporte[c]:>14.2f}" for c in classes) + f"  {total:>16.2f}"
         )
     return "\n".join(l)
+
+
+def itens_do_diario(plano: PlanoMes, dia: date) -> list[Item]:
+    """Converte as sugestões do plano em itens da fila de decisões."""
+    return [
+        Item(
+            id=f"{dia:%Y%m%d}-{s.ticker}", data=dia, ticker=s.ticker, tipo="ACAO",
+            quantidade=s.quantidade, preco_limite=s.preco_limite, stop=s.stop, alvo=s.alvo,
+            tese="; ".join(s.tese[:4]),
+            parecer_risco=f"{s.parecer.veredito.value}: {' '.join(s.parecer.motivos)}",
+        )
+        for s in plano.sugestoes
+    ]
 
 
 def texto_dicas() -> str:

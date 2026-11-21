@@ -19,7 +19,7 @@ Proposta completa (agentes, fluxo, fontes de dados, guardrails e roadmap):
 | Orquestrador e Conformidade | Plano do mês com as sugestões aprovadas | 2 (pronto) |
 | Notícias e Eventos | Fatos relevantes e comunicados da CVM, priorizados | 3 (código pronto, falta validar com a fonte real) |
 | Quant / Backtest | Testa a estratégia do Técnico no histórico | 3 (pronto) |
-| Mesa | Boleta pronta para você confirmar | 4 |
+| Mesa | Boleta pronta para você digitar na corretora | 4 (pronto, sem envio de ordens) |
 
 As definições (papel, instruções, modelo) estão em `src/inventidor/agentes/definicoes.py`.
 
@@ -107,6 +107,24 @@ os balanços na CVM (os indicadores fundamentalistas ainda entram por CSV).
 O backtest roda sobre o `exemplos/precos.csv`, que é **sintético e sempre em alta**; os números
 que aparecem não dizem nada sobre o mercado real. Com cotações reais, o relatório mostra a
 quantidade de operações, taxa de acerto, perda máxima e a comparação com comprar e segurar.
+
+## Fase 4: aprovação, boleta e diário
+
+Fluxo completo, em que **só você** move cada sugestão de estado:
+
+```bash
+inventidor plano --registrar        # sugestões do mês entram na fila (SUGERIDA)
+inventidor fila                     # o que espera sua decisão
+inventidor aprovar 20261121-BETA4   # ou: inventidor recusar <id> --motivo "..."
+inventidor boleta 20261121-BETA4    # roteiro para digitar na corretora (ordem limitada)
+inventidor executada 20261121-BETA4 --preco 31,40 --custos 1,20
+```
+
+- O Inventidor **não envia ordens** e não acessa sua corretora; a boleta é um roteiro.
+- `executada` grava a compra em `dados/operacoes.csv`: o Contador passa a considerá-la
+  no preço médio e no imposto. Preço mais de 2% acima do limite é barrado para conferência.
+- Tudo fica em `dados/diario.jsonl` (só acréscimo): auditoria completa de quem sugeriu o quê.
+- Venda e controle de stop/alvo ainda são manuais; a fila hoje cobre compras.
 
 ## Limitações conhecidas
 
