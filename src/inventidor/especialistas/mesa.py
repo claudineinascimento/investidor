@@ -21,6 +21,23 @@ def boleta(item: Item, validade: date | None = None) -> str:
     if item.estado != Estado.APROVADA:
         raise ErroDiario(f"{item.id} está {item.estado.value}: a boleta só sai depois de você aprovar.")
     val = f"{validade:%d/%m/%Y}" if validade else "válida só para o dia"
+    venda = item.lado == "V"
+    if venda:
+        return "\n".join([
+            f"BOLETA {item.id}  (confira cada campo antes de enviar)",
+            f"  Ativo:        {ticker_na_boleta(item)}",
+            "  Lado:         VENDA",
+            f"  Quantidade:   {item.quantidade}",
+            "  Tipo:         ORDEM LIMITADA (piso de preço; nunca a mercado)",
+            f"  Preço mínimo: R$ {item.preco_limite}",
+            f"  Validade:     {val}",
+            f"  Valor mínimo: R$ {item.valor:.2f} menos custos da sua corretora",
+            "",
+            "Depois de enviar:",
+            "  - Vendeu? Registre: inventidor executada "
+            f"{item.id} --preco <preço> --custos <custos>",
+            "  - A venda entra na apuração do Contador: veja `inventidor apurar`.",
+        ])
     return "\n".join([
         f"BOLETA {item.id}  (confira cada campo antes de enviar)",
         f"  Ativo:        {ticker_na_boleta(item)}",

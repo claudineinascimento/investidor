@@ -144,6 +144,15 @@ def main(argv: list[str] | None = None) -> int:
     for sp in sub.choices.values():
         if sp.prog.split()[-1] in ("fila", "aprovar", "recusar", "boleta", "executada"):
             sp.add_argument("--diario", default="dados/diario.jsonl")
+    vg = sub.add_parser("vigiar", help="avisa stop ou alvo atingido e sugere a venda")
+    vg.add_argument("--precos", default="dados/precos.csv", help="cotações recentes (veja `dados cotacoes`)")
+    vg.add_argument("--operacoes", default="dados/operacoes.csv")
+    vg.add_argument("--diario", default="dados/diario.jsonl")
+    vg.add_argument("--registrar", action="store_true", help="coloca as vendas sugeridas na fila")
+    pn = sub.add_parser("painel", help="painel local para aprovar sugestões com um clique")
+    pn.add_argument("--porta", type=int, default=8765)
+    pn.add_argument("--diario", default="dados/diario.jsonl")
+    pn.add_argument("--operacoes", default="dados/operacoes.csv")
     bt = sub.add_parser("backtest", help="testa a estratégia do Analista Técnico no histórico")
     bt.add_argument("--precos", default="exemplos/precos.csv")
     bt.add_argument("ticker", nargs="*", help="sem tickers, testa todos do arquivo")
@@ -202,8 +211,42 @@ def _decisao(args) -> None:
         print("O Contador já considera essa compra na carteira e no preço médio.")
 
 
+def _vigiar(args) -> None:
+    from datetime import date as _d
+
+    from inventidor import diario
+    from inventidor.especialistas.tecnico import ler_precos
+    from inventidor.especialistas.vigia import itens_de_venda, texto_sinais, vigiar
+
+    cam = Path(args.diario)
+    ops = ler_csv(args.operacoes)
+    sinais = vigiar(ops, ler_precos(args.precos), diario.carregar(cam))
+    print(texto_sinais(sinais))
+    if args.registrar and sinais:
+        tipos = {o.ticker: o.tipo for o in ops}
+        novas = [i for i in itens_de_venda(sinais, _d.today(), tipos) if diario.registrar_sugestao(i, cam)]
+        print(f"\n{len(novas)} venda(s) sugerida(s) na fila. Veja: inventidor fila")
+
+
+def _painel(args) -> None:
+    from inventidor.painel import Painel, criar_servidor
+
+    painel = Painel(Path(args.diario), Path(args.operacoes))
+    srv = criar_servidor(painel, args.porta)
+    print(f"Painel em http://127.0.0.1:{args.porta}  (Ctrl+C para sair)")
+    try:
+        srv.serve_forever()
+    except KeyboardInterrupt:
+        print("\nPainel encerrado.")
+
+
 def _executar(args) -> int:
-    if args.comando in ("fila", "aprovar", "recusar", "boleta", "executada"):
+    if args.comando == "painel":
+        _painel(args)
+        return 0
+    if args.comando == "vigiar":
+        _vigiar(args)
+    elif args.comando in ("fila", "aprovar", "recusar", "boleta", "executada"):
         _decisao(args)
     elif args.comando == "plano":
         _plano(args)

@@ -1,6 +1,6 @@
 """Diário de decisões: quem sugeriu, o que você decidiu e o que foi executado.
 
-Cada sugestão passa por estados, e só você move de um para o outro:
+Compras e vendas passam por estados, e só você move de um para o outro:
 
     SUGERIDA -> APROVADA -> EXECUTADA
         \\-> RECUSADA        (recusada também vale depois de aprovada, até executar)
@@ -48,6 +48,7 @@ class Item:
     alvo: Decimal
     tese: str
     parecer_risco: str
+    lado: str = "C"  # C compra, V venda
     estado: Estado = Estado.SUGERIDA
     execucao: dict | None = None
     motivo_recusa: str = ""
@@ -78,7 +79,7 @@ def carregar(caminho: Path = DIARIO_PADRAO) -> dict[str, Item]:
                 id=e["id"], data=date.fromisoformat(e["data"]), ticker=e["ticker"], tipo=e["tipo"],
                 quantidade=e["quantidade"], preco_limite=Decimal(e["preco_limite"]),
                 stop=Decimal(e["stop"]), alvo=Decimal(e["alvo"]), tese=e["tese"],
-                parecer_risco=e["parecer_risco"],
+                parecer_risco=e["parecer_risco"], lado=e.get("lado", "C"),
             )
         else:
             item = itens[e["id"]]
@@ -99,7 +100,7 @@ def registrar_sugestao(item: Item, caminho: Path = DIARIO_PADRAO) -> bool:
         "evento": "sugerida", "id": item.id, "data": item.data.isoformat(), "ticker": item.ticker,
         "tipo": item.tipo, "quantidade": item.quantidade, "preco_limite": str(item.preco_limite),
         "stop": str(item.stop), "alvo": str(item.alvo), "tese": item.tese,
-        "parecer_risco": item.parecer_risco,
+        "parecer_risco": item.parecer_risco, "lado": item.lado,
     })
     return True
 
@@ -141,9 +142,14 @@ def executar(
         raise ErroDiario(f"{id} está {item.estado.value}: só registro execução do que você APROVOU.")
     qtd = quantidade or item.quantidade
     dia = dia or date.today()
-    if preco > item.preco_limite * Decimal("1.02"):
+    if item.lado == "C" and preco > item.preco_limite * Decimal("1.02"):
         raise ErroDiario(
             f"Preço R$ {preco} está mais de 2% acima do limite sugerido (R$ {item.preco_limite}). "
+            "Confira o valor; se for isso mesmo, recuse a sugestão e registre a operação à mão."
+        )
+    if item.lado == "V" and preco < item.preco_limite * Decimal("0.98"):
+        raise ErroDiario(
+            f"Preço R$ {preco} está mais de 2% abaixo do limite sugerido (R$ {item.preco_limite}). "
             "Confira o valor; se for isso mesmo, recuse a sugestão e registre a operação à mão."
         )
     _gravar(caminho, {
@@ -157,7 +163,7 @@ def executar(
             w = csv.writer(f, delimiter=";")
             if novo:
                 w.writerow(COLUNAS_OPERACOES)
-            w.writerow([dia.isoformat(), item.ticker, item.tipo, "C", qtd, preco, custos, ""])
+            w.writerow([dia.isoformat(), item.ticker, item.tipo, item.lado, qtd, preco, custos, ""])
     item.estado = Estado.EXECUTADA
     return item
 
@@ -169,8 +175,10 @@ def texto_fila(itens: dict[str, Item], estados: tuple[Estado, ...] = (Estado.SUG
     l = ["Fila de decisões (nada é enviado sem você)"]
     for i in sorted(fila, key=lambda x: (x.estado.value, x.data)):
         l.append(
-            f"  [{i.estado.value}] {i.id}: comprar {i.quantidade} {i.ticker} a até R$ {i.preco_limite} "
-            f"(R$ {i.valor:.2f}) | stop {i.stop}, alvo {i.alvo}"
+            f"  [{i.estado.value}] {i.id}: "
+            + (f"comprar {i.quantidade} {i.ticker} a até R$ {i.preco_limite}" if i.lado == "C"
+               else f"VENDER {i.quantidade} {i.ticker} a partir de R$ {i.preco_limite}")
+            + f" (R$ {i.valor:.2f}) | stop {i.stop}, alvo {i.alvo}"
         )
         l.append(f"      Risco: {i.parecer_risco}")
     return "\n".join(l)

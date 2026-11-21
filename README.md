@@ -124,7 +124,22 @@ inventidor executada 20261121-BETA4 --preco 31,40 --custos 1,20
 - `executada` grava a compra em `dados/operacoes.csv`: o Contador passa a considerá-la
   no preço médio e no imposto. Preço mais de 2% acima do limite é barrado para conferência.
 - Tudo fica em `dados/diario.jsonl` (só acréscimo): auditoria completa de quem sugeriu o quê.
-- Venda e controle de stop/alvo ainda são manuais; a fila hoje cobre compras.
+- A fila cobre compras e vendas.
+
+### Vendas, stops e painel
+
+```bash
+inventidor dados cotacoes BETA4 ALFA3   # cotações recentes (precisa de internet)
+inventidor vigiar --registrar           # stop ou alvo atingido? sugere a venda e entra na fila
+inventidor painel                       # http://127.0.0.1:8765: aprovar, recusar, ver boleta, registrar execução
+```
+
+- O **vigia** usa o stop e o alvo das compras que você registrou como executadas. Stop atingido:
+  sugere vender tudo. Alvo atingido: sugere vender metade. Em cada caso mostra o resultado
+  estimado e o **imposto adicional do mês**, calculado pelo Contador (vender mais de R$ 20 mil
+  em ações no mês faz perder a isenção).
+- O **painel** roda só no seu computador (127.0.0.1), sem dependências, com token por sessão e
+  bloqueio de Host estranho. Usa as mesmas regras do diário: não dá para pular etapa.
 
 ## Limitações conhecidas
 
