@@ -153,6 +153,23 @@ def main(argv: list[str] | None = None) -> int:
     pn.add_argument("--porta", type=int, default=8765)
     pn.add_argument("--diario", default="dados/diario.jsonl")
     pn.add_argument("--operacoes", default="dados/operacoes.csv")
+    fo = sub.add_parser("fontes", help="cadastro e ativação dos endereços de dados")
+    fsub = fo.add_subparsers(dest="acao", required=True)
+    fsub.add_parser("listar", help="mostra as fontes cadastradas")
+    fsub.add_parser("hosts", help="endereços a liberar na rede do ambiente (fontes ativas)")
+    fc = fsub.add_parser("cadastrar", help="cadastra uma fonte nova")
+    fc.add_argument("--nome", required=True)
+    fc.add_argument("--tipo", required=True, choices=["macro", "cotacoes", "eventos"])
+    fc.add_argument("--formato", required=True, choices=["bcb_sgs", "yahoo_chart", "cvm_ipe"])
+    fc.add_argument("--url", required=True, help="https://... com {campos} do formato")
+    fc.add_argument("--prioridade", type=int, default=10)
+    fc.add_argument("--ttl", type=int, default=3600, help="cache em segundos")
+    fc.add_argument("--observacao", default="")
+    fc.add_argument("--inativa", action="store_true", help="cadastra já desativada")
+    fc.add_argument("--substituir", action="store_true")
+    for acao_ in ("ativar", "desativar", "remover", "testar"):
+        fx = fsub.add_parser(acao_, help=f"{acao_} uma fonte" + (" (sem nome, testa as ativas)" if acao_ == "testar" else ""))
+        fx.add_argument("nome", nargs="?" if acao_ == "testar" else None)
     bt = sub.add_parser("backtest", help="testa a estratégia do Analista Técnico no histórico")
     bt.add_argument("--precos", default="exemplos/precos.csv")
     bt.add_argument("ticker", nargs="*", help="sem tickers, testa todos do arquivo")
@@ -170,10 +187,14 @@ def main(argv: list[str] | None = None) -> int:
 
     from inventidor.dados.http import RedeIndisponivel
 
+    from inventidor.dados.fontes import ErroFonte
     from inventidor.diario import ErroDiario
 
     try:
         return _executar(args)
+    except ErroFonte as e:
+        print(f"Fonte de dados: {e}")
+        return 1
     except ErroDiario as e:
         print(f"Não foi possível: {e}")
         return 1
@@ -240,7 +261,44 @@ def _painel(args) -> None:
         print("\nPainel encerrado.")
 
 
+def _fontes(args) -> int:
+    from inventidor.dados import fontes
+
+    cad = fontes.carregar_cadastro()
+    if args.acao == "listar":
+        print(fontes.texto_lista(cad))
+    elif args.acao == "hosts":
+        print("Libere estes endereços na rede do ambiente (Project settings > Cloud environment):")
+        print("\n".join(f"  {h}" for h in cad.hosts_ativos()))
+    elif args.acao == "cadastrar":
+        f = cad.cadastrar(fontes.Fonte(
+            nome=args.nome, tipo=args.tipo, formato=args.formato, url_modelo=args.url,
+            ativa=not args.inativa, ttl_segundos=args.ttl, prioridade=args.prioridade,
+            observacao=args.observacao), substituir=args.substituir)
+        print(f"Fonte {f.nome} cadastrada ({'ativa' if f.ativa else 'inativa'}). Lembre de liberar {f.host} na rede.")
+    elif args.acao in ("ativar", "desativar"):
+        f = cad.definir_ativa(args.nome, args.acao == "ativar")
+        print(f"Fonte {f.nome}: {'ATIVA' if f.ativa else 'DESATIVADA'}.")
+    elif args.acao == "remover":
+        cad.remover(args.nome)
+        print(f"Fonte {args.nome} removida.")
+    else:
+        alvo = [cad.fontes[args.nome]] if args.nome and args.nome in cad.fontes else (
+            [] if args.nome else [f for f in cad.fontes.values() if f.ativa])
+        if args.nome and not alvo:
+            raise fontes.ErroFonte(f"Fonte {args.nome!r} não cadastrada.")
+        falhou = False
+        for f in alvo:
+            ok, detalhe = fontes.testar(f)
+            falhou |= not ok
+            print(f"  [{'OK' if ok else 'FALHA'}] {f.nome}: {detalhe}")
+        return 1 if falhou else 0
+    return 0
+
+
 def _executar(args) -> int:
+    if args.comando == "fontes":
+        return _fontes(args)
     if args.comando == "painel":
         _painel(args)
         return 0

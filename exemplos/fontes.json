@@ -1,0 +1,34 @@
+{
+  "fontes": [
+    {
+      "nome": "yahoo_cotacoes",
+      "tipo": "cotacoes",
+      "formato": "yahoo_chart",
+      "url_modelo": "https://query1.finance.yahoo.com/v8/finance/chart/{ticker}.SA?range={periodo}&interval=1d",
+      "ativa": true,
+      "ttl_segundos": 1800,
+      "prioridade": 10,
+      "observacao": "Yahoo Finance, não oficial; só para uso pessoal"
+    },
+    {
+      "nome": "cvm_ipe",
+      "tipo": "eventos",
+      "formato": "cvm_ipe",
+      "url_modelo": "https://dados.cvm.gov.br/dados/CIA_ABERTA/DOC/IPE/DADOS/ipe_cia_aberta_{ano}.zip",
+      "ativa": false,
+      "ttl_segundos": 21600,
+      "prioridade": 10,
+      "observacao": "CVM: fatos relevantes e comunicados"
+    },
+    {
+      "nome": "bcb_sgs",
+      "tipo": "macro",
+      "formato": "bcb_sgs",
+      "url_modelo": "https://api.bcb.gov.br/dados/serie/bcdata.sgs.{serie}/dados/ultimos/{k}?formato=json",
+      "ativa": true,
+      "ttl_segundos": 21600,
+      "prioridade": 10,
+      "observacao": "Banco Central (SGS): Selic, IPCA, câmbio"
+    }
+  ]
+}

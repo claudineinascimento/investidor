@@ -97,6 +97,28 @@ inventidor eventos --mapa exemplos/mapa_empresas.csv   # fatos relevantes da CVM
 inventidor backtest                         # testa a estratégia do Técnico no histórico
 ```
 
+### Cadastro e ativação das fontes
+
+Os endereços ficam num cadastro (`dados/fontes.json`; modelo em `exemplos/fontes.json`).
+Cada fonte tem estes campos: `nome`, `tipo` (macro, cotacoes ou eventos), `formato`
+(bcb_sgs, yahoo_chart ou cvm_ipe), `url_modelo` (https com `{campos}`), `ativa`,
+`ttl_segundos` (cache), `prioridade` e `observacao`.
+
+```bash
+inventidor fontes listar                  # o que está cadastrado e ativo
+inventidor fontes hosts                   # endereços a liberar na rede do ambiente
+inventidor fontes testar                  # chamada de verdade em cada fonte ativa
+inventidor fontes desativar yahoo_cotacoes   # bloqueia o acesso a essa fonte
+inventidor fontes ativar yahoo_cotacoes
+inventidor fontes cadastrar --nome yahoo_espelho --tipo cotacoes --formato yahoo_chart \
+    --url 'https://query2.finance.yahoo.com/v8/finance/chart/{ticker}.SA?range={periodo}&interval=1d' --prioridade 1
+```
+
+Fonte desativada não é acessada (erro claro, sem estimar nada). Com duas fontes ativas do
+mesmo tipo vale a de menor `prioridade`. Só entram endereços `https` sem usuário, senha ou
+porta, com o formato que o Inventidor sabe ler. Cadastrar uma fonte não libera a rede: o
+host também precisa estar liberado no ambiente (`fontes hosts` lista quais).
+
 **Importante: o código das fontes de dados ainda não foi validado contra os serviços reais.**
 O ambiente onde foi escrito não tinha acesso à internet, então os leitores do Banco Central,
 do Yahoo Finance e da CVM foram testados só com amostras montadas à mão, seguindo a
