@@ -157,11 +157,17 @@ EQUIPE: dict[str, Agente] = {
                 "aprovadas pelo Gestor de Risco, com fonte e aviso legal. Garanta que nenhuma ação "
                 "seja tomada sem aprovação explícita do investidor. Use consultor_plano para a "
                 "política e os aportes, plano_do_mes_equipe para as sugestões do mês, "
-                "analisar_empresa para detalhar uma ação e dicas_da_equipe para orientar. Se faltar "
+                "analisar_empresa para detalhar uma ação, backtest_estrategia para ver como a estratégia "
+                "se saiu no passado, alertas_cvm para fatos relevantes, juro_real_atual para o cenário "
+                "de juros (se a ferramenta falhar por falta de rede, diga isso e não estime) e "
+                "dicas_da_equipe para orientar. Se faltar "
                 "um dado do perfil (gastos, reserva, prazo, perfil), pergunte antes de sugerir."
             ),
             fase=2,
-            ferramentas=["consultor_plano", "plano_do_mes_equipe", "analisar_empresa", "dicas_da_equipe"],
+            ferramentas=[
+                "consultor_plano", "plano_do_mes_equipe", "analisar_empresa", "dicas_da_equipe",
+                "backtest_estrategia", "alertas_cvm", "juro_real_atual",
+            ],
         ),
     ]
 }

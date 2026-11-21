@@ -17,8 +17,8 @@ Proposta completa (agentes, fluxo, fontes de dados, guardrails e roadmap):
 | Analista Técnico | Tendência, entrada, alvo e stop | 2 (pronto) |
 | Gestor de Risco | Aprova, ajusta ou veta sugestões | 2 (pronto) |
 | Orquestrador e Conformidade | Plano do mês com as sugestões aprovadas | 2 (pronto) |
-| Notícias e Eventos | Fatos relevantes e resultados | 3 |
-| Quant / Backtest | Testa estratégias e mede acertos | 3 |
+| Notícias e Eventos | Fatos relevantes e comunicados da CVM, priorizados | 3 (código pronto, falta validar com a fonte real) |
+| Quant / Backtest | Testa a estratégia do Técnico no histórico | 3 (pronto) |
 | Mesa | Boleta pronta para você confirmar | 4 |
 
 As definições (papel, instruções, modelo) estão em `src/inventidor/agentes/definicoes.py`.
@@ -88,11 +88,31 @@ Para conversar com a equipe (precisa de chave da API):
 inventidor-equipe "Tenho 10 mil e aporto 500 por mês, perfil moderado. O que faço este mês?"
 ```
 
+## Fase 3: dados reais, Notícias e Quant
+
+```bash
+inventidor dados selic                      # Selic, IPCA 12 meses e juro real (Banco Central)
+inventidor dados cotacoes PETR4 VALE3       # grava dados/precos.csv (Yahoo Finance, não oficial)
+inventidor eventos --mapa exemplos/mapa_empresas.csv   # fatos relevantes da CVM
+inventidor backtest                         # testa a estratégia do Técnico no histórico
+```
+
+**Importante: o código das fontes de dados ainda não foi validado contra os serviços reais.**
+O ambiente onde foi escrito não tinha acesso à internet, então os leitores do Banco Central,
+do Yahoo Finance e da CVM foram testados só com amostras montadas à mão, seguindo a
+documentação de cada fonte. Na primeira execução com internet, confira a saída; se um
+formato tiver mudado, o erro é explícito e nada é estimado no lugar. Falta também buscar
+os balanços na CVM (os indicadores fundamentalistas ainda entram por CSV).
+
+O backtest roda sobre o `exemplos/precos.csv`, que é **sintético e sempre em alta**; os números
+que aparecem não dizem nada sobre o mercado real. Com cotações reais, o relatório mostra a
+quantidade de operações, taxa de acerto, perda máxima e a comparação com comprar e segurar.
+
 ## Limitações conhecidas
 
 - Feriados não entram no cálculo do vencimento (só fins de semana).
 - Venda a descoberto, opções, subscrições, desdobramentos e bonificações ainda não são tratados.
-- Dados de mercado entram por CSV; a busca automática (CVM, cotações) vem na próxima etapa.
+- Balanços e indicadores fundamentalistas ainda entram por CSV.
 - Leitura automática do PDF da nota de corretagem e do extrato da B3 vem na próxima etapa.
 - Prejuízo em mês isento entra no saldo a compensar (`compensar_prejuizo_mes_isento`); confirme esse
   entendimento com seu contador.

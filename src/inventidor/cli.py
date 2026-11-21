@@ -50,6 +50,54 @@ def _plano(args) -> None:
     print(texto_dicas())
 
 
+def _backtest(args) -> None:
+    from inventidor.especialistas.quant import backtest, resumir, texto_resumos
+    from inventidor.especialistas.tecnico import ler_precos
+
+    series = ler_precos(args.precos)
+    tickers = [t.upper() for t in args.ticker] or sorted(series)
+    resumos = []
+    for t in tickers:
+        if len(series.get(t, [])) < 61:
+            print(f"{t}: histórico insuficiente (precisa de mais de 60 pregões).")
+            continue
+        resumos.append(resumir(t, series[t], backtest(t, series[t])))
+    print(texto_resumos(resumos))
+
+
+def _dados(args) -> None:
+    from decimal import Decimal as D
+
+    if args.alvo == "selic":
+        from inventidor.dados import bcb
+
+        selic = bcb.ultimos("selic_meta", 1)[-1]
+        ipca = bcb.ultimos("ipca_mensal", 12)
+        ipca12 = bcb.ipca_12_meses(ipca)
+        print(f"Selic meta: {selic[1]}% a.a. (em {selic[0]:%d/%m/%Y})")
+        print(f"IPCA 12 meses: {ipca12:.2f}%")
+        print(f"Juro real: {bcb.juro_real(selic[1], ipca12):.2f}% a.a. (fonte: Banco Central)")
+    else:
+        from inventidor.dados.cotacoes import baixar_cotacoes, salvar_csv
+
+        series = {t.upper(): baixar_cotacoes(t, args.periodo) for t in args.tickers}
+        salvar_csv(series, args.saida)
+        for t, c in series.items():
+            print(f"{t}: {len(c)} pregões, último {c[-1].data:%d/%m/%Y} a R$ {c[-1].fechamento}")
+        print(f"Gravado em {args.saida} (fonte: Yahoo Finance, não oficial)")
+
+
+def _eventos(args) -> None:
+    from datetime import date, timedelta
+
+    from inventidor.dados.cvm import baixar_ipe
+    from inventidor.especialistas.noticias import alertas, ler_mapa, texto_alertas
+
+    desde = date.today() - timedelta(days=args.dias)
+    docs = baixar_ipe(date.today().year)
+    print(texto_alertas(alertas(docs, ler_mapa(args.mapa), desde)))
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="inventidor")
     sub = p.add_subparsers(dest="comando", required=True)
@@ -68,10 +116,40 @@ def main(argv: list[str] | None = None) -> int:
     pl.add_argument("--meses", type=int, default=12)
     pl.add_argument("--fundamentos", default="exemplos/fundamentos.csv")
     pl.add_argument("--precos", default="exemplos/precos.csv")
+    bt = sub.add_parser("backtest", help="testa a estratégia do Analista Técnico no histórico")
+    bt.add_argument("--precos", default="exemplos/precos.csv")
+    bt.add_argument("ticker", nargs="*", help="sem tickers, testa todos do arquivo")
+    da = sub.add_parser("dados", help="baixa dados reais (precisa de internet)")
+    dsub = da.add_subparsers(dest="alvo", required=True)
+    dsub.add_parser("selic", help="Selic, IPCA 12 meses e juro real (Banco Central)")
+    dc = dsub.add_parser("cotacoes", help="cotações diárias para o Analista Técnico")
+    dc.add_argument("tickers", nargs="+")
+    dc.add_argument("--periodo", default="1y")
+    dc.add_argument("--saida", default="dados/precos.csv")
+    ev = sub.add_parser("eventos", help="fatos relevantes e comunicados da CVM (precisa de internet)")
+    ev.add_argument("--mapa", default="exemplos/mapa_empresas.csv", help="CSV ticker;nome")
+    ev.add_argument("--dias", type=int, default=30)
     args = p.parse_args(argv)
 
+    from inventidor.dados.http import RedeIndisponivel
+
+    try:
+        return _executar(args)
+    except RedeIndisponivel as e:
+        print(f"Sem acesso à fonte de dados: {e}")
+        print("Nada foi estimado no lugar. Tente de novo com internet ou use os CSVs manuais.")
+        return 1
+
+
+def _executar(args) -> int:
     if args.comando == "plano":
         _plano(args)
+    elif args.comando == "backtest":
+        _backtest(args)
+    elif args.comando == "dados":
+        _dados(args)
+    elif args.comando == "eventos":
+        _eventos(args)
     else:
         carteira = Carteira().processar(ler_csv(args.csv))
         if args.comando == "carteira":

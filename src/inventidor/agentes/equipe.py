@@ -94,7 +94,57 @@ def criar_ferramentas(fundamentos_csv: str, precos_csv: str):
         """Dicas práticas de cada especialista."""
         return texto_dicas()
 
-    return [consultor_plano, plano_do_mes_equipe, analisar_empresa, dicas_da_equipe]
+    @beta_tool
+    def backtest_estrategia(ticker: str) -> str:
+        """Quant: testa no histórico a estratégia do Analista Técnico para uma ação.
+
+        Args:
+            ticker: código da ação, por exemplo ALFA3.
+        """
+        from inventidor.especialistas.quant import JANELA_MINIMA, backtest, resumir, texto_resumos
+
+        t = ticker.strip().upper()
+        candles = precos.get(t, [])
+        if len(candles) <= JANELA_MINIMA:
+            return f"Histórico insuficiente para {t}."
+        return texto_resumos([resumir(t, candles, backtest(t, candles))])
+
+    @beta_tool
+    def alertas_cvm(mapa_csv: str = "exemplos/mapa_empresas.csv", dias: int = 30) -> str:
+        """Notícias e Eventos: fatos relevantes e comunicados recentes da CVM das empresas acompanhadas.
+
+        Args:
+            mapa_csv: CSV ticker;nome com as empresas acompanhadas.
+            dias: janela de dias para trás.
+        """
+        from datetime import date, timedelta
+
+        from inventidor.dados.cvm import baixar_ipe
+        from inventidor.dados.http import RedeIndisponivel
+        from inventidor.especialistas.noticias import alertas, ler_mapa, texto_alertas
+
+        try:
+            docs = baixar_ipe(date.today().year)
+        except RedeIndisponivel as e:
+            return f"Sem acesso à CVM: {e}. Não há alertas verificados; não estime."
+        return texto_alertas(alertas(docs, ler_mapa(mapa_csv), date.today() - timedelta(days=dias)))
+
+    @beta_tool
+    def juro_real_atual() -> str:
+        """Consultor: Selic meta, IPCA de 12 meses e juro real do Banco Central."""
+        from inventidor.dados import bcb
+        from inventidor.dados.http import RedeIndisponivel
+
+        try:
+            selic = bcb.ultimos("selic_meta", 1)[-1]
+            ipca12 = bcb.ipca_12_meses(bcb.ultimos("ipca_mensal", 12))
+        except RedeIndisponivel as e:
+            return f"Sem acesso ao Banco Central: {e}. Não estime a Selic."
+        return (f"Selic meta {selic[1]}% a.a. ({selic[0]:%d/%m/%Y}); IPCA 12 meses {ipca12:.2f}%; "
+                f"juro real {bcb.juro_real(selic[1], ipca12):.2f}% a.a.")
+
+    return [consultor_plano, plano_do_mes_equipe, analisar_empresa, dicas_da_equipe,
+            backtest_estrategia, alertas_cvm, juro_real_atual]
 
 
 def perguntar(pergunta: str, fundamentos_csv: str = "exemplos/fundamentos.csv",
