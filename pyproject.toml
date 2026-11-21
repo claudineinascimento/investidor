@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inventidor"
+version = "0.1.0"
+description = "Equipe de agentes de IA para gestão de ações na B3 (sugestões com aprovação humana)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+agentes = ["anthropic>=1.0"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+inventidor = "inventidor.cli:main"
+inventidor-contador = "inventidor.agentes.contador:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
