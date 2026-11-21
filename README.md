@@ -120,6 +120,8 @@ porta, com o formato que o Inventidor sabe ler. Cadastrar uma fonte não libera 
 host também precisa estar liberado no ambiente (`fontes hosts` lista quais).
 
 **Importante: o código das fontes de dados ainda não foi validado contra os serviços reais.**
+Os hosts necessários são `api.bcb.gov.br`, `query1.finance.yahoo.com` e `dados.cvm.gov.br`;
+os downloads ficam em cache em `dados/cache/` (fora do git).
 O ambiente onde foi escrito não tinha acesso à internet, então os leitores do Banco Central,
 do Yahoo Finance e da CVM foram testados só com amostras montadas à mão, seguindo a
 documentação de cada fonte. Na primeira execução com internet, confira a saída; se um

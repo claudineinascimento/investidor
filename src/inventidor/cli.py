@@ -99,11 +99,11 @@ def _dados(args) -> None:
 def _eventos(args) -> None:
     from datetime import date, timedelta
 
-    from inventidor.dados.cvm import baixar_ipe
+    from inventidor.dados.cvm import baixar_ipe_desde
     from inventidor.especialistas.noticias import alertas, ler_mapa, texto_alertas
 
     desde = date.today() - timedelta(days=args.dias)
-    docs = baixar_ipe(date.today().year)
+    docs = baixar_ipe_desde(desde)
     print(texto_alertas(alertas(docs, ler_mapa(args.mapa), desde)))
 
 
@@ -240,6 +240,14 @@ def _vigiar(args) -> None:
     from inventidor.especialistas.vigia import itens_de_venda, texto_sinais, vigiar
 
     cam = Path(args.diario)
+    if not Path(args.operacoes).exists():
+        raise diario.ErroDiario(
+            f"{args.operacoes} não existe: registre compras com `inventidor executada` antes de vigiar."
+        )
+    if not Path(args.precos).exists():
+        raise diario.ErroDiario(
+            f"{args.precos} não existe: baixe cotações com `inventidor dados cotacoes TICKER ...`."
+        )
     ops = ler_csv(args.operacoes)
     sinais = vigiar(ops, ler_precos(args.precos), diario.carregar(cam))
     print(texto_sinais(sinais))
