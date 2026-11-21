@@ -17,6 +17,7 @@ dev = ["pytest>=8"]
 [project.scripts]
 inventidor = "inventidor.cli:main"
 inventidor-contador = "inventidor.agentes.contador:main"
+inventidor-equipe = "inventidor.agentes.equipe:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -74,6 +74,7 @@ EQUIPE: dict[str, Agente] = {
                 "por ação e por setor, perda máxima mensal. Revise a alocação todo mês."
             ),
             fase=2,
+            ferramentas=["consultor_plano"],
         ),
         Agente(
             chave="fundamentalista",
@@ -154,9 +155,13 @@ EQUIPE: dict[str, Agente] = {
             instrucoes=(
                 "Monte o painel do dia com o que cada agente produziu. Só entram na fila sugestões "
                 "aprovadas pelo Gestor de Risco, com fonte e aviso legal. Garanta que nenhuma ação "
-                "seja tomada sem aprovação explícita do investidor."
+                "seja tomada sem aprovação explícita do investidor. Use consultor_plano para a "
+                "política e os aportes, plano_do_mes_equipe para as sugestões do mês, "
+                "analisar_empresa para detalhar uma ação e dicas_da_equipe para orientar. Se faltar "
+                "um dado do perfil (gastos, reserva, prazo, perfil), pergunte antes de sugerir."
             ),
             fase=2,
+            ferramentas=["consultor_plano", "plano_do_mes_equipe", "analisar_empresa", "dicas_da_equipe"],
         ),
     ]
 }

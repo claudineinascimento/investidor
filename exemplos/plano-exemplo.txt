@@ -1,0 +1,90 @@
+Política do Consultor (perfil moderado, prazo 10 anos)
+  Renda fixa: 50%
+  Ações: 20%
+  FIIs: 15%
+  ETF de índice: 15%
+  Limite por ação: 20% da parte de ações; por setor: 40%; alerta de queda mensal: 8%
+
+Plano de aportes (sem supor rentabilidade)
+ Mês      Renda fixa           Ações            FIIs             ETF   Total acumulado
+   0         5000.00         2000.00         1500.00         1500.00          10000.00
+   1          250.00          100.00           75.00           75.00          10500.00
+   2          250.00          100.00           75.00           75.00          11000.00
+   3          250.00          100.00           75.00           75.00          11500.00
+   4          250.00          100.00           75.00           75.00          12000.00
+   5          250.00          100.00           75.00           75.00          12500.00
+   6          250.00          100.00           75.00           75.00          13000.00
+   7          250.00          100.00           75.00           75.00          13500.00
+   8          250.00          100.00           75.00           75.00          14000.00
+   9          250.00          100.00           75.00           75.00          14500.00
+  10          250.00          100.00           75.00           75.00          15000.00
+  11          250.00          100.00           75.00           75.00          15500.00
+  12          250.00          100.00           75.00           75.00          16000.00
+
+Plano do mês 0 (valor inicial)
+Valor do mês: R$ 10000.00
+
+Divisão do Consultor:
+  Renda fixa: R$ 5000.00  (Tesouro Selic para curto prazo; Tesouro IPCA+ ou CDB/LCI/LCA para prazos longos.)
+  Ações: R$ 2000.00  (ver sugestões abaixo)
+  FIIs: R$ 1500.00  (Um fundo de papel (recebíveis) e um de tijolo (logística ou lajes), ou um FII de FIIs para começar.)
+  ETF de índice: R$ 1500.00  (Um ETF que replica o Ibovespa e, se quiser exposição ao exterior, um ETF de S&P 500.)
+
+Sugestões de ações (você decide e confirma cada uma):
+  BETA4F: comprar 12 a até R$ 31.50 (ordem limitada) = R$ 378.00
+     stop R$ 29.98, alvo R$ 34.54 | nota 9/10, preço justo R$ 38.18, desconto 18%
+     Tese: ROE de 20.0% (rentabilidade alta); ROE acima de 20%; Margem líquida de 25.0%; Dívida baixa (até 1x o EBITDA)
+     Técnico: Tendência de alta e preço perto da média de 20 dias.
+     Risco: APROVADO - Dentro dos limites da política.
+  LAMB3F: comprar 26 a até R$ 15.00 (ordem limitada) = R$ 390.00
+     stop R$ 14.27, alvo R$ 16.46 | nota 7/10, preço justo R$ 18.16, desconto 17%
+     Tese: ROE de 17.8% (rentabilidade alta); Margem líquida de 20.0%; Lucro cresce 6.0% ao ano; Dividend yield de 7.3%
+     Técnico: Tendência de alta e preço perto da média de 20 dias.
+     Risco: APROVADO - Dentro dos limites da política.
+  ALFA3F: comprar 9 a até R$ 42.00 (ordem limitada) = R$ 378.00
+     stop R$ 39.98, alvo R$ 46.04 | nota 7/10, preço justo R$ 47.98, desconto 12%
+     Tese: ROE de 17.5% (rentabilidade alta); Margem líquida de 22.0%; Lucro cresce 7.0% ao ano; Dividend yield de 6.9%
+     Técnico: Tendência de alta e preço perto da média de 20 dias.
+     Risco: APROVADO - Dentro dos limites da política.
+  IOTA3F: comprar 19 a até R$ 21.00 (ordem limitada) = R$ 399.00
+     stop R$ 19.99, alvo R$ 23.02 | nota 7/10, preço justo R$ 22.65, desconto 7%
+     Tese: ROE de 17.7% (rentabilidade alta); Margem líquida de 12.0%; Lucro cresce 8.0% ao ano; Dividend yield de 6.7%
+     Técnico: Tendência de alta e preço perto da média de 20 dias.
+     Risco: APROVADO - Dentro dos limites da política.
+
+Lista de espera (boas empresas, preço esticado):
+  ZETA3: Tendência de alta, mas 8.4% acima da média de 20 dias: espere recuo até R$ 27.40.
+
+Observações:
+  - Com valores até R$ 20 mil, use o mercado fracionário (ticker com F no final, ex.: ITSA4F) para comprar menos de 100 ações e diversificar desde o início.
+  - R$ 455.00 da verba de ações não foram usados (limites de risco ou arredondamento de lote): deixe na renda fixa para o próximo mês.
+
+Dicas da equipe
+  Consultor:
+    - Reserva de emergência primeiro: 6 meses de gastos em renda fixa com liquidez diária.
+    - Aporte todo mês no mesmo dia, como uma conta fixa. A constância pesa mais que acertar o momento.
+    - Rebalanceie com os aportes: compre o que ficou abaixo do alvo, em vez de vender o que subiu.
+    - Só coloque na bolsa dinheiro que pode ficar lá por 5 anos ou mais.
+  Analista Fundamentalista:
+    - Prefira empresas com lucro consistente, dívida controlada e ROE acima de 15%.
+    - Dividend yield alto num ano só pode ser um evento pontual: olhe a média de 5 anos.
+    - Preço justo é uma faixa, não um número exato. Exija margem de segurança.
+    - Leia o release de resultados de cada empresa da carteira todo trimestre.
+  Analista Técnico:
+    - Defina o stop antes de comprar e anote. Depois da compra, a emoção atrapalha.
+    - Evite comprar ações muito esticadas acima da média de 20 dias.
+    - Para quem investe no longo prazo, a análise técnica serve para escolher o momento, não a empresa.
+  Gestor de Risco:
+    - Nenhuma ação deve pesar mais de 20% da parte de ações; nenhum setor mais de 40%.
+    - Cada operação pode perder no máximo 2% do patrimônio se o stop for atingido.
+    - Com R$ 10 mil, 5 a 8 ações já trazem boa diversificação; mais que isso vira trabalho sem ganho.
+  Contador:
+    - Vendas de ações até R$ 20 mil no mês são isentas, mas o lucro precisa ser declarado.
+    - Guarde todas as notas de corretagem: são a prova do seu preço médio.
+    - Prejuízo também se declara: ele abate lucros futuros e reduz o imposto.
+    - DARF vence no último dia útil do mês seguinte; atraso gera multa e juros.
+  Mesa:
+    - Use ordem limitada, nunca a mercado, para não pagar mais caro em ações com pouco volume.
+    - Abaixo de 100 ações, compre no mercado fracionário (ticker com F no final).
+    - Muitas corretoras zeraram a corretagem: confira as taxas da sua antes de fazer muitas ordens pequenas.
+Apoio à decisão para uso pessoal. Não é recomendação de investimento nem substitui contador. Confira os valores antes de pagar ou declarar.
